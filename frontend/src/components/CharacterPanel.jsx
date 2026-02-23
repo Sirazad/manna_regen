@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { WIELDER_TYPES } from '../gameLogic';
 
 function CharacterPanel({ state, maxMagicExhaustion, onUpdateField }) {
+  const [mannaAdjustAmt, setMannaAdjustAmt] = useState(5);
+  const [psziAdjustAmt, setPsziAdjustAmt] = useState(5);
+
   const adjustValue = (field, delta, min, max) => {
     const newVal = Math.max(min, Math.min(max, state[field] + delta));
     onUpdateField(field, newVal);
@@ -40,18 +43,12 @@ function CharacterPanel({ state, maxMagicExhaustion, onUpdateField }) {
               type="number"
               className="adjust-amount"
               min="1"
-              defaultValue="5"
-              id="manna-adjust"
+              value={mannaAdjustAmt}
+              onChange={e => setMannaAdjustAmt(Math.max(1, parseInt(e.target.value) || 1))}
               placeholder="amt"
             />
-            <button onClick={() => {
-              const amt = parseInt(document.getElementById('manna-adjust').value) || 1;
-              adjustValue('currentManna', -amt, 0, state.maxManna);
-            }}>-</button>
-            <button onClick={() => {
-              const amt = parseInt(document.getElementById('manna-adjust').value) || 1;
-              adjustValue('currentManna', amt, 0, state.maxManna);
-            }}>+</button>
+            <button onClick={() => adjustValue('currentManna', -mannaAdjustAmt, 0, state.maxManna)}>-</button>
+            <button onClick={() => adjustValue('currentManna', mannaAdjustAmt, 0, state.maxManna)}>+</button>
           </div>
         </div>
       </div>
@@ -85,18 +82,12 @@ function CharacterPanel({ state, maxMagicExhaustion, onUpdateField }) {
               type="number"
               className="adjust-amount"
               min="1"
-              defaultValue="5"
-              id="pszi-adjust"
+              value={psziAdjustAmt}
+              onChange={e => setPsziAdjustAmt(Math.max(1, parseInt(e.target.value) || 1))}
               placeholder="amt"
             />
-            <button onClick={() => {
-              const amt = parseInt(document.getElementById('pszi-adjust').value) || 1;
-              adjustValue('currentPszi', -amt, 0, state.maxPszi);
-            }}>-</button>
-            <button onClick={() => {
-              const amt = parseInt(document.getElementById('pszi-adjust').value) || 1;
-              adjustValue('currentPszi', amt, 0, state.maxPszi);
-            }}>+</button>
+            <button onClick={() => adjustValue('currentPszi', -psziAdjustAmt, 0, state.maxPszi)}>-</button>
+            <button onClick={() => adjustValue('currentPszi', psziAdjustAmt, 0, state.maxPszi)}>+</button>
           </div>
         </div>
       </div>
