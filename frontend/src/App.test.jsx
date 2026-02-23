@@ -32,3 +32,12 @@ test('renders magic exhaustion limit', () => {
   render(<App />);
   expect(screen.getByText(/Magic Exhaustion Limit/i)).toBeInTheDocument();
 });
+
+test('renders session panel with save/load/history buttons', () => {
+  render(<App />);
+  expect(screen.getByText(/Session/i)).toBeInTheDocument();
+  expect(screen.getByText(/Save/i)).toBeInTheDocument();
+  expect(screen.getByText(/Load/i)).toBeInTheDocument();
+  expect(screen.getByText(/History/i)).toBeInTheDocument();
+  expect(screen.getByPlaceholderText(/Enter character name/i)).toBeInTheDocument();
+});

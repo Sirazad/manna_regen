@@ -6,6 +6,9 @@
 target/
 !.mvn/wrapper/maven-wrapper.jar
 
+# H2 database files
+backend/data/
+
 # Maven
 .mvn/
 mvnw

@@ -77,15 +77,66 @@ export function createInitialState() {
 }
 
 /**
- * Call the backend API to perform an action.
+ * Call the backend API to perform an action (with logging under character name).
  * All game calculations are done server-side.
  */
-export async function performActionApi(actionRequest) {
-  const response = await fetch('/api/action', {
+export async function performActionApi(characterName, actionRequest) {
+  const url = characterName
+    ? `/api/action/${encodeURIComponent(characterName)}`
+    : '/api/action';
+  const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(actionRequest),
   });
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Save a game session under a character name.
+ */
+export async function saveSessionApi(characterName, currentState) {
+  const response = await fetch('/api/session/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ characterName, currentState }),
+  });
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * List all saved sessions.
+ */
+export async function listSessionsApi() {
+  const response = await fetch('/api/session/list');
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Load a saved session by its ID.
+ */
+export async function loadSessionApi(id) {
+  const response = await fetch(`/api/session/${id}`);
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  return response.json();
+}
+
+/**
+ * Get action history for a character.
+ */
+export async function getHistoryApi(characterName) {
+  const response = await fetch(`/api/history/${encodeURIComponent(characterName)}`);
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`);
   }

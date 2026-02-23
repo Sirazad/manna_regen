@@ -322,3 +322,136 @@
   border-radius: 6px;
   border: 1px solid #f5c6cb;
 }
+
+/* Status Message */
+.status-message {
+  text-align: center;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  background: #d4edda;
+  color: #155724;
+  border-radius: 6px;
+  border: 1px solid #c3e6cb;
+  font-weight: 600;
+}
+
+/* Left Panel */
+.left-panel {
+  flex: 1;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Session Panel */
+.session-panel {
+  background: #eef2f7;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #c8d6e5;
+}
+
+.session-panel h2 {
+  margin-top: 0;
+  color: #2c3e50;
+  border-bottom: 2px solid #c8d6e5;
+  padding-bottom: 8px;
+}
+
+.session-panel input[type="text"] {
+  padding: 6px 8px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+  flex: 1;
+}
+
+.session-buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.save-button, .load-button, .history-button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  color: white;
+}
+
+.save-button { background: #28a745; }
+.save-button:hover { background: #218838; }
+.load-button { background: #007bff; }
+.load-button:hover { background: #0056b3; }
+.history-button { background: #6f42c1; }
+.history-button:hover { background: #5a2d91; }
+
+.load-session-button {
+  padding: 4px 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.load-session-button:hover { background: #0056b3; }
+
+/* Session List */
+.session-list {
+  margin-top: 12px;
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #dee2e6;
+}
+
+.session-list h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  color: #495057;
+}
+
+.session-list table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.session-list th, .session-list td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.session-list th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
+
+/* History Panel */
+.history-dialog {
+  max-width: 700px;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.history-table th, .history-table td {
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.history-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+}
