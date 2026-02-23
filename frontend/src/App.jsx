@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import CharacterPanel from './components/CharacterPanel';
 import TimeDisplay from './components/TimeDisplay';
 import ActionDialog from './components/ActionDialog';
-import { createInitialState, calculatePsziRegen, calculateMagicExhaustionRecovery } from './gameLogic';
+import { createInitialState, performActionApi } from './gameLogic';
 import './App.css';
 
 function App() {
@@ -15,58 +15,57 @@ function App() {
     setState(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSpendPszi = (amount, timeSegments, force) => {
-    const newExhaustion = state.magicExhaustionLimit - amount;
-    if (newExhaustion < 0 && !force) {
-      return {
-        warning: true,
-        message: `Magic exhaustion limit would go below 0 (to ${newExhaustion.toFixed(1)}). Do you want to proceed?`,
-      };
+  const handleSpendPszi = async (amount, timeSegments, force) => {
+    try {
+      const response = await performActionApi({
+        actionType: 'SPEND_PSZI',
+        amount,
+        timeSegments,
+        forceAction: force,
+        currentState: state,
+      });
+      if (response.warning) {
+        return { warning: true, message: response.warningMessage };
+      }
+      setState(response.updatedState);
+      return { warning: false };
+    } catch (err) {
+      return { warning: true, message: 'Backend error: ' + err.message };
     }
-    setState(prev => ({
-      ...prev,
-      currentPszi: Math.max(0, prev.currentPszi - amount),
-      magicExhaustionLimit: newExhaustion,
-      currentTimeSegments: prev.currentTimeSegments + timeSegments,
-    }));
-    return { warning: false };
   };
 
-  const handleSpendMana = (amount, timeSegments, force) => {
-    const newExhaustion = state.magicExhaustionLimit - amount;
-    if (newExhaustion < 0 && !force) {
-      return {
-        warning: true,
-        message: `Magic exhaustion limit would go below 0 (to ${newExhaustion.toFixed(1)}). Do you want to proceed?`,
-      };
+  const handleSpendMana = async (amount, timeSegments, force) => {
+    try {
+      const response = await performActionApi({
+        actionType: 'SPEND_MANA',
+        amount,
+        timeSegments,
+        forceAction: force,
+        currentState: state,
+      });
+      if (response.warning) {
+        return { warning: true, message: response.warningMessage };
+      }
+      setState(response.updatedState);
+      return { warning: false };
+    } catch (err) {
+      return { warning: true, message: 'Backend error: ' + err.message };
     }
-    setState(prev => ({
-      ...prev,
-      currentManna: Math.max(0, prev.currentManna - amount),
-      magicExhaustionLimit: newExhaustion,
-      currentTimeSegments: prev.currentTimeSegments + timeSegments,
-    }));
-    return { warning: false };
   };
 
-  const handleSkipTime = (timeSegments, activityType, maxPainPointsAffected) => {
-    setState(prev => {
-      const psziRegen = calculatePsziRegen(prev.maxPszi, timeSegments, activityType);
-      const newPszi = Math.min(prev.maxPszi, prev.currentPszi + psziRegen);
-
-      const exhaustionRecovery = calculateMagicExhaustionRecovery(
-        prev.stamina, prev.level, timeSegments, activityType, maxPainPointsAffected
-      );
-      const maxExh = 25 * prev.level;
-      const newExhaustion = Math.min(maxExh, prev.magicExhaustionLimit + exhaustionRecovery);
-
-      return {
-        ...prev,
-        currentPszi: Math.floor(newPszi),
-        magicExhaustionLimit: newExhaustion,
-        currentTimeSegments: prev.currentTimeSegments + timeSegments,
-      };
-    });
+  const handleSkipTime = async (timeSegments, activityType, maxPainPointsAffected) => {
+    try {
+      const response = await performActionApi({
+        actionType: 'SKIP_TIME',
+        timeSegments,
+        activityType,
+        maxPainPointsAffected,
+        currentState: state,
+      });
+      setState(response.updatedState);
+    } catch (err) {
+      alert('Backend error: ' + err.message);
+    }
   };
 
   return (

@@ -16,39 +16,39 @@ function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onClose }) 
   const getTimeSegments = () =>
     parseTimeToSegments({ days: timeDays, hours: timeHours, minutes: timeMinutes, seconds: timeSeconds });
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const timeSegments = getTimeSegments();
 
     if (actionType === 'SPEND_PSZI') {
-      const result = onSpendPszi(amount, timeSegments, false);
+      const result = await onSpendPszi(amount, timeSegments, false);
       if (result.warning) {
         setWarningMessage(result.message);
-        setPendingAction(() => () => {
-          onSpendPszi(amount, timeSegments, true);
+        setPendingAction(() => async () => {
+          await onSpendPszi(amount, timeSegments, true);
           onClose();
         });
         return;
       }
     } else if (actionType === 'SPEND_MANA') {
-      const result = onSpendMana(amount, timeSegments, false);
+      const result = await onSpendMana(amount, timeSegments, false);
       if (result.warning) {
         setWarningMessage(result.message);
-        setPendingAction(() => () => {
-          onSpendMana(amount, timeSegments, true);
+        setPendingAction(() => async () => {
+          await onSpendMana(amount, timeSegments, true);
           onClose();
         });
         return;
       }
     } else if (actionType === 'SKIP_TIME') {
-      onSkipTime(timeSegments, activityType, maxPainPointsAffected);
+      await onSkipTime(timeSegments, activityType, maxPainPointsAffected);
     }
 
     onClose();
   };
 
-  const handleForceConfirm = () => {
+  const handleForceConfirm = async () => {
     if (pendingAction) {
-      pendingAction();
+      await pendingAction();
     }
     setWarningMessage(null);
     setPendingAction(null);
