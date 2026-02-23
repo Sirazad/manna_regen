@@ -12,8 +12,9 @@
     <name>Manna Regen Tracker</name>
     <description>Manna regeneration, rest time and magic exhaustion tracker</description>
 
+    <!-- frontend builds first so backend can bundle its output -->
     <modules>
-        <module>backend</module>
         <module>frontend</module>
+        <module>backend</module>
     </modules>
 </project>
