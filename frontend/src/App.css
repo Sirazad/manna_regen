@@ -41,6 +41,18 @@
   border-bottom: 1px solid #e9ecef;
 }
 
+.stat-pair-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.stat-pair-row > .stat-row {
+  flex: 0 0 auto;
+}
+
 .stat-row {
   display: flex;
   align-items: center;
@@ -49,7 +61,7 @@
 }
 
 .stat-row label {
-  min-width: 140px;
+  min-width: 120px;
   font-weight: 600;
   font-size: 14px;
 }
@@ -70,28 +82,15 @@
   min-width: 140px;
 }
 
-.adjust-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.adjust-controls button {
-  padding: 4px 10px;
-  border: 1px solid #ced4da;
+.current-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0056b3;
+  padding: 4px 8px;
+  background: #e8f4f8;
   border-radius: 4px;
-  background: #e9ecef;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.adjust-controls button:hover {
-  background: #dee2e6;
-}
-
-.adjust-amount {
-  width: 50px !important;
+  min-width: 40px;
+  text-align: center;
 }
 
 /* Right Panel */

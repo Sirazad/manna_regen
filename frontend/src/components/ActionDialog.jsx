@@ -7,7 +7,7 @@ function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onClose }) 
   const [timeDays, setTimeDays] = useState(0);
   const [timeHours, setTimeHours] = useState(0);
   const [timeMinutes, setTimeMinutes] = useState(0);
-  const [timeSeconds, setTimeSeconds] = useState(1);
+  const [timeSeconds, setTimeSeconds] = useState(0);
   const [activityType, setActivityType] = useState('DEEP_MEDITATION');
   const [maxPainPointsAffected, setMaxPainPointsAffected] = useState(false);
   const [warningMessage, setWarningMessage] = useState(null);
