@@ -15,6 +15,7 @@ import {
   deleteHistoryEntryApi,
 } from './gameLogic';
 import './App.css';
+import ChatPanel from './components/ChatPanel';
 
 function App() {
   const [state, setState] = useState(createInitialState());
@@ -273,6 +274,7 @@ function App() {
           onClose={() => setShowCharacterManager(false)}
         />
       )}
+      <ChatPanel />
     </div>
   );
 }
