@@ -4,13 +4,15 @@ import TimeDisplay from './components/TimeDisplay';
 import ActionDialog from './components/ActionDialog';
 import SessionPanel from './components/SessionPanel';
 import HistoryPanel from './components/HistoryPanel';
+import CharacterManagerPanel from './components/CharacterManagerPanel';
 import {
   createInitialState,
   performActionApi,
   saveSessionApi,
   listSessionsApi,
-  loadSessionApi,
   getHistoryApi,
+  restoreFromHistoryApi,
+  deleteHistoryEntryApi,
 } from './gameLogic';
 import './App.css';
 
@@ -18,6 +20,7 @@ function App() {
   const [state, setState] = useState(createInitialState());
   const [characterName, setCharacterName] = useState('');
   const [showActionDialog, setShowActionDialog] = useState(false);
+  const [showCharacterManager, setShowCharacterManager] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
@@ -26,12 +29,30 @@ function App() {
   const maxMagicExhaustion = 25 * state.level;
 
   const updateField = (field, value) => {
-    setState(prev => ({ ...prev, [field]: value }));
+    setState(prev => {
+      const updates = { [field]: value };
+      if (field === 'maxManna') updates.currentManna = value;
+      if (field === 'maxPszi') updates.currentPszi = value;
+      if (field === 'level') updates.magicExhaustionLimit = 25 * value;
+      return { ...prev, ...updates };
+    });
   };
 
   const showStatus = (msg) => {
     setStatusMessage(msg);
     setTimeout(() => setStatusMessage(''), 3000);
+  };
+
+  const handleFullyRested = () => {
+    setState(prev => ({
+      ...prev,
+      currentManna: prev.maxManna,
+      currentPszi: prev.maxPszi,
+      magicExhaustionLimit: 25 * prev.level,
+      currentTimeSegments: 0,
+      restingUntilSegments: 0,
+    }));
+    showStatus('Character fully rested.');
   };
 
   const handleSpendPszi = async (amount, timeSegments, force) => {
@@ -44,12 +65,12 @@ function App() {
         currentState: state,
       });
       if (response.warning) {
-        return { warning: true, message: response.warningMessage };
+        return { warning: true, error: response.error, message: response.warningMessage };
       }
       setState(response.updatedState);
       return { warning: false };
     } catch (err) {
-      return { warning: true, message: 'Backend error: ' + err.message };
+      return { warning: true, error: false, message: 'Backend error: ' + err.message };
     }
   };
 
@@ -63,7 +84,7 @@ function App() {
         currentState: state,
       });
       if (response.warning) {
-        return { warning: true, message: response.warningMessage };
+        return { warning: true, error: response.error, message: response.warningMessage };
       }
       setState(response.updatedState);
       return { warning: false };
@@ -81,9 +102,13 @@ function App() {
         maxPainPointsAffected,
         currentState: state,
       });
+      if (response.warning) {
+        return { warning: true, error: response.error, message: response.warningMessage };
+      }
       setState(response.updatedState);
+      return { warning: false };
     } catch (err) {
-      alert('Backend error: ' + err.message);
+      return { warning: true, error: false, message: 'Backend error: ' + err.message };
     }
   };
 
@@ -120,6 +145,7 @@ function App() {
       stamina: session.stamina,
       magicExhaustionLimit: session.magicExhaustionLimit,
       currentTimeSegments: session.currentTimeSegments,
+      restingUntilSegments: session.restingUntilSegments || 0,
     });
     setCharacterName(session.characterName);
     setSessions([]);
@@ -138,6 +164,33 @@ function App() {
     } catch (err) {
       alert('History error: ' + err.message);
     }
+  };
+
+  const handleDeleteHistoryEntry = async (logId) => {
+    try {
+      await deleteHistoryEntryApi(logId);
+      setHistory(prev => prev.filter(e => e.id !== logId));
+    } catch (err) {
+      alert('Delete error: ' + err.message);
+    }
+  };
+
+  const handleRestoreFromHistory = async (entry) => {
+    try {
+      const restoredState = await restoreFromHistoryApi(entry.id);
+      setState(restoredState);
+      setShowHistory(false);
+      showStatus(`Restored state from ${new Date(entry.performedAt).toLocaleString()}.`);
+    } catch (err) {
+      alert('Restore error: ' + err.message);
+    }
+  };
+
+  const handleLoadCharacter = (name, loadedState) => {
+    setState(loadedState);
+    setCharacterName(name);
+    setShowCharacterManager(false);
+    showStatus(`Loaded character "${name}".`);
   };
 
   return (
@@ -167,7 +220,11 @@ function App() {
         </div>
 
         <div className="right-panel">
-          <TimeDisplay currentTimeSegments={state.currentTimeSegments} />
+          <TimeDisplay
+            currentTimeSegments={state.currentTimeSegments}
+            restingUntilSegments={state.restingUntilSegments || 0}
+            onResetTimer={() => setState(prev => ({ ...prev, currentTimeSegments: 0, restingUntilSegments: 0 }))}
+          />
 
           <div className="magic-exhaustion-display">
             <label>Magic Exhaustion Limit:</label>
@@ -176,11 +233,16 @@ function App() {
             </span>
           </div>
 
-          <button
-            className="action-button"
-            onClick={() => setShowActionDialog(true)}
-          >
+          <button className="action-button" onClick={() => setShowActionDialog(true)}>
             Perform Action
+          </button>
+
+          <button className="fully-rested-button" onClick={handleFullyRested}>
+            Fully Rested
+          </button>
+
+          <button className="characters-button" onClick={() => setShowCharacterManager(true)}>
+            Characters
           </button>
         </div>
       </div>
@@ -200,6 +262,15 @@ function App() {
           characterName={characterName}
           history={history}
           onClose={() => setShowHistory(false)}
+          onRestore={handleRestoreFromHistory}
+          onDelete={handleDeleteHistoryEntry}
+        />
+      )}
+
+      {showCharacterManager && (
+        <CharacterManagerPanel
+          onLoad={handleLoadCharacter}
+          onClose={() => setShowCharacterManager(false)}
         />
       )}
     </div>

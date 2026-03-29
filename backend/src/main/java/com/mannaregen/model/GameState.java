@@ -13,6 +13,7 @@ public class GameState {
     private int stamina;
     private double magicExhaustionLimit;
     private long currentTimeSegments; // time in segments (1 segment = 1 second)
+    private long restingUntilSegments; // absolute segment until which spending is blocked
 
     public GameState() {
         this.wielderType = WielderType.NONE;
@@ -97,5 +98,13 @@ public class GameState {
 
     public void setCurrentTimeSegments(long currentTimeSegments) {
         this.currentTimeSegments = currentTimeSegments;
+    }
+
+    public long getRestingUntilSegments() {
+        return restingUntilSegments;
+    }
+
+    public void setRestingUntilSegments(long restingUntilSegments) {
+        this.restingUntilSegments = restingUntilSegments;
     }
 }

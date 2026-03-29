@@ -30,6 +30,7 @@ public class GameSessionEntity {
     private int stamina;
     private double magicExhaustionLimit;
     private long currentTimeSegments;
+    private Long restingUntilSegments;
 
     public GameSessionEntity() {
     }
@@ -137,5 +138,13 @@ public class GameSessionEntity {
 
     public void setCurrentTimeSegments(long currentTimeSegments) {
         this.currentTimeSegments = currentTimeSegments;
+    }
+
+    public long getRestingUntilSegments() {
+        return restingUntilSegments != null ? restingUntilSegments : 0;
+    }
+
+    public void setRestingUntilSegments(long restingUntilSegments) {
+        this.restingUntilSegments = restingUntilSegments;
     }
 }

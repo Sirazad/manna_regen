@@ -3,6 +3,9 @@ package com.mannaregen.service;
 import com.mannaregen.model.*;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Core calculation service for manna/pszi regeneration,
  * magic exhaustion, and time management.
@@ -44,7 +47,7 @@ public class CalculationService {
 
     /**
      * Get the magic exhaustion recovery rate per minute based on stamina and level.
-     * Returns 0 if stamina is below 3 (no recovery).
+     * Returns 0 if stamina is below 4 (no recovery).
      */
     public double getMagicExhaustionRecoveryPerMinute(int stamina, double level) {
         if (stamina < 4) {
@@ -109,23 +112,55 @@ public class CalculationService {
     }
 
     /**
-     * Perform an action and return the response with updated state.
+     * Perform an action and return the response with updated state and effects summary.
      */
     public ActionResponse performAction(ActionRequest request) {
+        GameState before = copyState(request.getCurrentState());
         GameState state = copyState(request.getCurrentState());
 
-        return switch (request.getActionType()) {
+        ActionResponse response = switch (request.getActionType()) {
             case SPEND_PSZI -> handleSpendPszi(state, request);
             case SPEND_MANA -> handleSpendMana(state, request);
             case SKIP_TIME -> handleSkipTime(state, request);
         };
+
+        if (!response.isWarning()) {
+            response.setEffects(buildEffects(before, response.getUpdatedState()));
+        }
+
+        return response;
+    }
+
+    private int calculateRestingPeriod(int amount, int max) {
+        if (max <= 0) return 1;
+        double pct = (double) amount / max * 100.0;
+        if (pct <= 25.0) return 1;
+        if (pct <= 75.0) return 2;
+        if (pct <= 100.0) return 3;
+        return 60; // 1 minute
     }
 
     private ActionResponse handleSpendPszi(GameState state, ActionRequest request) {
         int amount = request.getAmount();
-        double newExhaustion = state.getMagicExhaustionLimit() - amount;
 
-        // Check if magic exhaustion would go below 0
+        // Hard error: resting period active
+        if (state.getCurrentTimeSegments() < state.getRestingUntilSegments()) {
+            long remaining = state.getRestingUntilSegments() - state.getCurrentTimeSegments();
+            ActionResponse error = new ActionResponse(state,
+                    "Character is still resting for " + remaining + " more segment(s).");
+            error.setError(true);
+            return error;
+        }
+
+        if (amount > state.getCurrentPszi()) {
+            int overage = amount - state.getCurrentPszi();
+            ActionResponse error = new ActionResponse(state,
+                    "You want to spend " + overage + " more pszi than you have available.");
+            error.setError(true);
+            return error;
+        }
+
+        double newExhaustion = state.getMagicExhaustionLimit() - amount;
         if (newExhaustion < 0 && !request.isForceAction()) {
             return new ActionResponse(state,
                     "Magic exhaustion limit would go below 0 (to " +
@@ -136,15 +171,32 @@ public class CalculationService {
         state.setCurrentPszi(Math.max(0, state.getCurrentPszi() - amount));
         state.setMagicExhaustionLimit(newExhaustion);
         state.setCurrentTimeSegments(state.getCurrentTimeSegments() + request.getTimeSegments());
+        long restingPeriod = calculateRestingPeriod(amount, state.getMaxPszi());
+        state.setRestingUntilSegments(state.getCurrentTimeSegments() + 1 + restingPeriod);
 
         return new ActionResponse(state);
     }
 
     private ActionResponse handleSpendMana(GameState state, ActionRequest request) {
         int amount = request.getAmount();
-        double newExhaustion = state.getMagicExhaustionLimit() - amount;
 
-        // Check if magic exhaustion would go below 0
+        // Hard error: resting period active
+        if (state.getCurrentTimeSegments() < state.getRestingUntilSegments()) {
+            long remaining = state.getRestingUntilSegments() - state.getCurrentTimeSegments();
+            ActionResponse error = new ActionResponse(state,
+                    "Character is still resting for " + remaining + " more segment(s).");
+            error.setError(true);
+            return error;
+        }
+
+        if (amount > state.getCurrentManna() && !request.isForceAction()) {
+            int overage = amount - state.getCurrentManna();
+            return new ActionResponse(state,
+                    "You only have " + state.getCurrentManna() + " mana available and want to spend " +
+                    amount + " (+" + overage + " more). Proceed?");
+        }
+
+        double newExhaustion = state.getMagicExhaustionLimit() - amount;
         if (newExhaustion < 0 && !request.isForceAction()) {
             return new ActionResponse(state,
                     "Magic exhaustion limit would go below 0 (to " +
@@ -155,6 +207,8 @@ public class CalculationService {
         state.setCurrentManna(Math.max(0, state.getCurrentManna() - amount));
         state.setMagicExhaustionLimit(newExhaustion);
         state.setCurrentTimeSegments(state.getCurrentTimeSegments() + request.getTimeSegments());
+        long restingPeriod = calculateRestingPeriod(amount, state.getMaxManna());
+        state.setRestingUntilSegments(state.getCurrentTimeSegments() + 1 + restingPeriod);
 
         return new ActionResponse(state);
     }
@@ -164,13 +218,11 @@ public class CalculationService {
         ActivityType activity = request.getActivityType();
         boolean painAffected = request.isMaxPainPointsAffected();
 
-        // Pszi regeneration
         double psziRegen = calculatePsziRegen(state.getMaxPszi(), timeSegments, activity);
         int newPszi = (int) Math.min(state.getMaxPszi(),
                 state.getCurrentPszi() + psziRegen);
         state.setCurrentPszi(newPszi);
 
-        // Magic exhaustion recovery
         double exhaustionRecovery = calculateMagicExhaustionRecovery(
                 state.getStamina(), state.getLevel(), timeSegments,
                 activity, painAffected);
@@ -179,10 +231,35 @@ public class CalculationService {
                 state.getMagicExhaustionLimit() + exhaustionRecovery);
         state.setMagicExhaustionLimit(newExhaustion);
 
-        // Advance time
         state.setCurrentTimeSegments(state.getCurrentTimeSegments() + timeSegments);
 
         return new ActionResponse(state);
+    }
+
+    private String buildEffects(GameState before, GameState after) {
+        List<String> parts = new ArrayList<>();
+
+        int psziDiff = after.getCurrentPszi() - before.getCurrentPszi();
+        if (psziDiff != 0) parts.add("Pszi: " + formatIntDiff(psziDiff));
+
+        int mannaDiff = after.getCurrentManna() - before.getCurrentManna();
+        if (mannaDiff != 0) parts.add("Mana: " + formatIntDiff(mannaDiff));
+
+        double exhaustionDiff = after.getMagicExhaustionLimit() - before.getMagicExhaustionLimit();
+        if (Math.abs(exhaustionDiff) > 0.001) parts.add("Magic Exhaustion: " + formatDoubleDiff(exhaustionDiff));
+
+        long timeDiff = after.getCurrentTimeSegments() - before.getCurrentTimeSegments();
+        if (timeDiff != 0) parts.add("Time: +" + timeDiff + " seg");
+
+        return String.join(", ", parts);
+    }
+
+    private String formatIntDiff(int diff) {
+        return (diff >= 0 ? "+" : "") + diff;
+    }
+
+    private String formatDoubleDiff(double diff) {
+        return (diff >= 0 ? "+" : "") + String.format("%.1f", diff);
     }
 
     private GameState copyState(GameState source) {
@@ -196,6 +273,7 @@ public class CalculationService {
         copy.setStamina(source.getStamina());
         copy.setMagicExhaustionLimit(source.getMagicExhaustionLimit());
         copy.setCurrentTimeSegments(source.getCurrentTimeSegments());
+        copy.setRestingUntilSegments(source.getRestingUntilSegments());
         return copy;
     }
 }

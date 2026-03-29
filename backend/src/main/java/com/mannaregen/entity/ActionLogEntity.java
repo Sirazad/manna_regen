@@ -2,6 +2,7 @@ package com.mannaregen.entity;
 
 import com.mannaregen.model.ActionType;
 import com.mannaregen.model.ActivityType;
+import com.mannaregen.model.WielderType;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -33,6 +34,22 @@ public class ActionLogEntity {
     private boolean forced;
 
     private String description;
+    private String effects;
+
+    // Full game state snapshot (after the action)
+    private Integer snapshotMaxManna;
+    private Integer snapshotCurrentManna;
+    private Integer snapshotMaxPszi;
+    private Integer snapshotCurrentPszi;
+
+    @Enumerated(EnumType.STRING)
+    private WielderType snapshotWielderType;
+
+    private Double snapshotLevel;
+    private Integer snapshotStamina;
+    private Double snapshotMagicExhaustionLimit;
+    private Long snapshotTimeSegments;
+    private Long snapshotRestingUntilSegments;
 
     public ActionLogEntity() {
     }
@@ -46,83 +63,66 @@ public class ActionLogEntity {
 
     // --- Getters and Setters ---
 
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getCharacterName() { return characterName; }
+    public void setCharacterName(String characterName) { this.characterName = characterName; }
 
-    public String getCharacterName() {
-        return characterName;
-    }
+    public LocalDateTime getPerformedAt() { return performedAt; }
+    public void setPerformedAt(LocalDateTime performedAt) { this.performedAt = performedAt; }
 
-    public void setCharacterName(String characterName) {
-        this.characterName = characterName;
-    }
+    public ActionType getActionType() { return actionType; }
+    public void setActionType(ActionType actionType) { this.actionType = actionType; }
 
-    public LocalDateTime getPerformedAt() {
-        return performedAt;
-    }
+    public Integer getAmount() { return amount; }
+    public void setAmount(Integer amount) { this.amount = amount; }
 
-    public void setPerformedAt(LocalDateTime performedAt) {
-        this.performedAt = performedAt;
-    }
+    public Long getTimeSegments() { return timeSegments; }
+    public void setTimeSegments(Long timeSegments) { this.timeSegments = timeSegments; }
 
-    public ActionType getActionType() {
-        return actionType;
-    }
+    public ActivityType getActivityType() { return activityType; }
+    public void setActivityType(ActivityType activityType) { this.activityType = activityType; }
 
-    public void setActionType(ActionType actionType) {
-        this.actionType = actionType;
-    }
+    public boolean isMaxPainPointsAffected() { return maxPainPointsAffected; }
+    public void setMaxPainPointsAffected(boolean maxPainPointsAffected) { this.maxPainPointsAffected = maxPainPointsAffected; }
 
-    public Integer getAmount() {
-        return amount;
-    }
+    public boolean isForced() { return forced; }
+    public void setForced(boolean forced) { this.forced = forced; }
 
-    public void setAmount(Integer amount) {
-        this.amount = amount;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public Long getTimeSegments() {
-        return timeSegments;
-    }
+    public String getEffects() { return effects; }
+    public void setEffects(String effects) { this.effects = effects; }
 
-    public void setTimeSegments(Long timeSegments) {
-        this.timeSegments = timeSegments;
-    }
+    public Integer getSnapshotMaxManna() { return snapshotMaxManna; }
+    public void setSnapshotMaxManna(Integer snapshotMaxManna) { this.snapshotMaxManna = snapshotMaxManna; }
 
-    public ActivityType getActivityType() {
-        return activityType;
-    }
+    public Integer getSnapshotCurrentManna() { return snapshotCurrentManna; }
+    public void setSnapshotCurrentManna(Integer snapshotCurrentManna) { this.snapshotCurrentManna = snapshotCurrentManna; }
 
-    public void setActivityType(ActivityType activityType) {
-        this.activityType = activityType;
-    }
+    public Integer getSnapshotMaxPszi() { return snapshotMaxPszi; }
+    public void setSnapshotMaxPszi(Integer snapshotMaxPszi) { this.snapshotMaxPszi = snapshotMaxPszi; }
 
-    public boolean isMaxPainPointsAffected() {
-        return maxPainPointsAffected;
-    }
+    public Integer getSnapshotCurrentPszi() { return snapshotCurrentPszi; }
+    public void setSnapshotCurrentPszi(Integer snapshotCurrentPszi) { this.snapshotCurrentPszi = snapshotCurrentPszi; }
 
-    public void setMaxPainPointsAffected(boolean maxPainPointsAffected) {
-        this.maxPainPointsAffected = maxPainPointsAffected;
-    }
+    public WielderType getSnapshotWielderType() { return snapshotWielderType; }
+    public void setSnapshotWielderType(WielderType snapshotWielderType) { this.snapshotWielderType = snapshotWielderType; }
 
-    public boolean isForced() {
-        return forced;
-    }
+    public Double getSnapshotLevel() { return snapshotLevel; }
+    public void setSnapshotLevel(Double snapshotLevel) { this.snapshotLevel = snapshotLevel; }
 
-    public void setForced(boolean forced) {
-        this.forced = forced;
-    }
+    public Integer getSnapshotStamina() { return snapshotStamina; }
+    public void setSnapshotStamina(Integer snapshotStamina) { this.snapshotStamina = snapshotStamina; }
 
-    public String getDescription() {
-        return description;
-    }
+    public Double getSnapshotMagicExhaustionLimit() { return snapshotMagicExhaustionLimit; }
+    public void setSnapshotMagicExhaustionLimit(Double snapshotMagicExhaustionLimit) { this.snapshotMagicExhaustionLimit = snapshotMagicExhaustionLimit; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public Long getSnapshotTimeSegments() { return snapshotTimeSegments; }
+    public void setSnapshotTimeSegments(Long snapshotTimeSegments) { this.snapshotTimeSegments = snapshotTimeSegments; }
+
+    public Long getSnapshotRestingUntilSegments() { return snapshotRestingUntilSegments; }
+    public void setSnapshotRestingUntilSegments(Long snapshotRestingUntilSegments) { this.snapshotRestingUntilSegments = snapshotRestingUntilSegments; }
 }

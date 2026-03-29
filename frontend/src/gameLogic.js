@@ -73,6 +73,7 @@ export function createInitialState() {
     stamina: 10,
     magicExhaustionLimit: 25,
     currentTimeSegments: 0,
+    restingUntilSegments: 0,
   };
 }
 
@@ -137,6 +138,78 @@ export async function loadSessionApi(id) {
  */
 export async function getHistoryApi(characterName) {
   const response = await fetch(`/api/history/${encodeURIComponent(characterName)}`);
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+  return response.json();
+}
+
+// --- Character API ---
+
+export async function listCharactersApi() {
+  const response = await fetch('/api/characters');
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  return response.json();
+}
+
+export async function listDeletedCharactersApi() {
+  const response = await fetch('/api/characters/deleted');
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  return response.json();
+}
+
+export async function createCharacterApi(character) {
+  const response = await fetch('/api/characters', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(character),
+  });
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  return response.json();
+}
+
+export async function updateCharacterApi(id, character) {
+  const response = await fetch(`/api/characters/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(character),
+  });
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  return response.json();
+}
+
+export async function deleteCharacterApi(id) {
+  const response = await fetch(`/api/characters/${id}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+}
+
+export async function restoreCharacterApi(id) {
+  const response = await fetch(`/api/characters/${id}/restore`, { method: 'POST' });
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  return response.json();
+}
+
+export async function loadCharacterApi(id) {
+  const response = await fetch(`/api/characters/${id}/load`);
+  if (!response.ok) throw new Error(`API error: ${response.status}`);
+  return response.json();
+}
+
+/**
+ * Delete a history log entry.
+ */
+export async function deleteHistoryEntryApi(logId) {
+  const response = await fetch(`/api/history/${logId}`, { method: 'DELETE' });
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+}
+
+/**
+ * Restore game state from a history log entry.
+ */
+export async function restoreFromHistoryApi(logId) {
+  const response = await fetch(`/api/history/restore/${logId}`);
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`);
   }

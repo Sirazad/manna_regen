@@ -163,6 +163,33 @@
   margin-top: var(--spacing-xs);
 }
 
+.reset-timer-button {
+  margin-top: var(--spacing-sm);
+  padding: 4px 12px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  background: #6c757d;
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.reset-timer-button:hover {
+  background: #5a6268;
+}
+
+.resting-indicator {
+  margin-top: var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+}
+
 /* ===== Magic Exhaustion ===== */
 .magic-exhaustion-display {
   background: var(--color-warning-bg);
@@ -209,6 +236,63 @@
 
 .action-button:active {
   transform: scale(0.98);
+}
+
+.fully-rested-button {
+  padding: 0.625rem var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  background: var(--color-success);
+  color: white;
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.fully-rested-button:hover {
+  opacity: 0.9;
+}
+
+.characters-button {
+  padding: 0.625rem var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  background: #6f42c1;
+  color: white;
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.characters-button:hover {
+  opacity: 0.9;
+}
+
+/* ===== Character Manager ===== */
+.character-manager-dialog {
+  max-width: 750px;
+}
+
+.character-form {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.character-form h3 {
+  margin: 0 0 var(--spacing-sm) 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.character-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 24px;
 }
 
 /* ===== Dialog ===== */
@@ -470,6 +554,24 @@
 
 .load-session-button:hover { opacity: 0.9; }
 
+.delete-button {
+  padding: 4px 8px;
+  background: var(--color-danger);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.delete-button:hover { opacity: 0.85; }
+
+.row-pending-delete {
+  background: var(--color-danger-bg);
+  outline: 2px solid var(--color-danger);
+}
+
 /* ===== Session List ===== */
 .session-list {
   margin-top: var(--spacing-md);
@@ -507,9 +609,16 @@
   color: var(--color-text-muted);
 }
 
+.time-segments-preview {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-left: 4px;
+  white-space: nowrap;
+}
+
 /* ===== History Panel ===== */
 .history-dialog {
-  max-width: 700px;
+  max-width: 800px;
 }
 
 .history-table {

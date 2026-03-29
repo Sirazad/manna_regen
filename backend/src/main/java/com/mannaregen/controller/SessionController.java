@@ -29,7 +29,7 @@ public class SessionController {
 
     @PostMapping("/session/save")
     public GameSessionEntity saveSession(@RequestBody SaveSessionRequest request) {
-        GameSessionEntity entity = toEntity(request.getCharacterName(), request.getCurrentState());
+        GameSessionEntity entity = toSessionEntity(request.getCharacterName(), request.getCurrentState());
         return sessionRepository.save(entity);
     }
 
@@ -55,13 +55,29 @@ public class SessionController {
         return actionLogRepository.findByCharacterNameOrderByPerformedAtDesc(characterName);
     }
 
+    @DeleteMapping("/history/{logId}")
+    public ResponseEntity<Void> deleteHistoryEntry(@PathVariable Long logId) {
+        if (!actionLogRepository.existsById(logId)) {
+            return ResponseEntity.notFound().build();
+        }
+        actionLogRepository.deleteById(logId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/history/restore/{logId}")
+    public ResponseEntity<GameState> restoreFromHistory(@PathVariable Long logId) {
+        return actionLogRepository.findById(logId)
+                .map(log -> ResponseEntity.ok(toGameState(log)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/action/{characterName}")
     public ActionResponse performAndLogAction(@PathVariable String characterName,
                                                @RequestBody ActionRequest request) {
         ActionResponse response = calculationService.performAction(request);
 
-        // Log the action if it was successful (not a warning)
         if (!response.isWarning()) {
+            GameState snapshot = response.getUpdatedState();
             ActionLogEntity log = new ActionLogEntity();
             log.setCharacterName(characterName);
             log.setActionType(request.getActionType());
@@ -71,6 +87,17 @@ public class SessionController {
             log.setMaxPainPointsAffected(request.isMaxPainPointsAffected());
             log.setForced(request.isForceAction());
             log.setDescription(buildDescription(request));
+            log.setEffects(response.getEffects());
+            log.setSnapshotMaxManna(snapshot.getMaxManna());
+            log.setSnapshotCurrentManna(snapshot.getCurrentManna());
+            log.setSnapshotMaxPszi(snapshot.getMaxPszi());
+            log.setSnapshotCurrentPszi(snapshot.getCurrentPszi());
+            log.setSnapshotWielderType(snapshot.getWielderType());
+            log.setSnapshotLevel(snapshot.getLevel());
+            log.setSnapshotStamina(snapshot.getStamina());
+            log.setSnapshotMagicExhaustionLimit(snapshot.getMagicExhaustionLimit());
+            log.setSnapshotTimeSegments(snapshot.getCurrentTimeSegments());
+            log.setSnapshotRestingUntilSegments(snapshot.getRestingUntilSegments());
             actionLogRepository.save(log);
         }
 
@@ -88,7 +115,7 @@ public class SessionController {
         };
     }
 
-    private GameSessionEntity toEntity(String characterName, GameState state) {
+    private GameSessionEntity toSessionEntity(String characterName, GameState state) {
         GameSessionEntity entity = new GameSessionEntity();
         entity.setCharacterName(characterName);
         entity.setMaxManna(state.getMaxManna());
@@ -100,6 +127,22 @@ public class SessionController {
         entity.setStamina(state.getStamina());
         entity.setMagicExhaustionLimit(state.getMagicExhaustionLimit());
         entity.setCurrentTimeSegments(state.getCurrentTimeSegments());
+        entity.setRestingUntilSegments(state.getRestingUntilSegments());
         return entity;
+    }
+
+    private GameState toGameState(ActionLogEntity log) {
+        GameState state = new GameState();
+        state.setMaxManna(log.getSnapshotMaxManna() != null ? log.getSnapshotMaxManna() : 0);
+        state.setCurrentManna(log.getSnapshotCurrentManna() != null ? log.getSnapshotCurrentManna() : 0);
+        state.setMaxPszi(log.getSnapshotMaxPszi() != null ? log.getSnapshotMaxPszi() : 0);
+        state.setCurrentPszi(log.getSnapshotCurrentPszi() != null ? log.getSnapshotCurrentPszi() : 0);
+        state.setWielderType(log.getSnapshotWielderType() != null ? log.getSnapshotWielderType() : WielderType.NONE);
+        state.setLevel(log.getSnapshotLevel() != null ? log.getSnapshotLevel() : 0);
+        state.setStamina(log.getSnapshotStamina() != null ? log.getSnapshotStamina() : 0);
+        state.setMagicExhaustionLimit(log.getSnapshotMagicExhaustionLimit() != null ? log.getSnapshotMagicExhaustionLimit() : 0);
+        state.setCurrentTimeSegments(log.getSnapshotTimeSegments() != null ? log.getSnapshotTimeSegments() : 0);
+        state.setRestingUntilSegments(log.getSnapshotRestingUntilSegments() != null ? log.getSnapshotRestingUntilSegments() : 0);
+        return state;
     }
 }
