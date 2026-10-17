@@ -1,0 +1,28 @@
+services:
+  manna-backend:
+    build: ./backend
+    container_name: manna-backend
+    restart: unless-stopped
+    volumes:
+      - manna-data:/app/data
+    networks:
+      - manna-network
+
+  manna-frontend:
+    build: ./frontend
+    container_name: manna-frontend
+    restart: unless-stopped
+    depends_on:
+      - manna-backend
+    networks:
+      - manna-network
+      - platform-net
+
+networks:
+  manna-network:
+    driver: bridge
+  platform-net:
+    external: true
+
+volumes:
+  manna-data:
