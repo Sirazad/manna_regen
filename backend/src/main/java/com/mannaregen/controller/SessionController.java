@@ -112,6 +112,12 @@ public class SessionController {
                     request.getTimeSegments() + " segments";
             case SKIP_TIME -> "Skipped " + request.getTimeSegments() + " segments (" +
                     (request.getActivityType() != null ? request.getActivityType().name() : "unknown") + ")";
+            case REGEN_MANA_VARAZS_KOR -> "Varázskör: regenerated manna (spent " + request.getAmount() +
+                    (request.isAmountIsManna() ? " manna target" : " pszi") + ")";
+            case REGEN_MANA_KISZOPOLYOZAS -> "Kiszopolyozás: regenerated manna (spent " + request.getAmount() +
+                    (request.isAmountIsManna() ? " manna target" : " pszi") + ")";
+            case REGEN_MANA_KIVONAS -> "Kivonás: regenerated manna (spent " + request.getAmount() +
+                    (request.isAmountIsManna() ? " manna target" : " pszi") + ")";
         };
     }
 

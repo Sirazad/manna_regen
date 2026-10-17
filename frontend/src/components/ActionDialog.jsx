@@ -9,9 +9,16 @@ const TIME_UNITS = [
   { label: 'Hours', multiplier: 3600 },
 ];
 
-function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onClose }) {
+const REGEN_MANA_TYPES = {
+  REGEN_MANA_VARAZS_KOR:    { mannaPerPszi: 10, label: 'Varázskör' },
+  REGEN_MANA_KISZOPOLYOZAS: { mannaPerPszi: 5,  label: 'Kiszopolyozás' },
+  REGEN_MANA_KIVONAS:       { mannaPerPszi: 3,  label: 'Kivonás' },
+};
+
+function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onRegenMana, onClose }) {
   const [actionType, setActionType] = useState('SPEND_PSZI');
   const [amount, setAmount] = useState(1);
+  const [amountIsManna, setAmountIsManna] = useState(false);
   const [timeAmount, setTimeAmount] = useState(1);
   const [timeMultiplier, setTimeMultiplier] = useState(1);
   const [activityType, setActivityType] = useState('DEEP_MEDITATION');
@@ -20,6 +27,16 @@ function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onClose }) 
   const [isHardError, setIsHardError] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [noTimeConfirm, setNoTimeConfirm] = useState(false);
+
+  const isRegenMana = actionType in REGEN_MANA_TYPES;
+
+  const getRegenPreview = () => {
+    if (!isRegenMana) return null;
+    const { mannaPerPszi } = REGEN_MANA_TYPES[actionType];
+    const psziCost = amountIsManna ? Math.ceil(amount / mannaPerPszi) : amount;
+    const mannaGained = psziCost * mannaPerPszi;
+    return `Will spend ${psziCost} pszi → gain ${mannaGained} manna`;
+  };
 
   const getTimeSegments = () => Math.round(timeAmount * timeMultiplier);
 
@@ -65,6 +82,19 @@ function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onClose }) 
         setIsHardError(!!result.error);
         return;
       }
+    } else if (isRegenMana) {
+      const result = await onRegenMana(actionType, amount, amountIsManna, false);
+      if (result.warning) {
+        setWarningMessage(result.message);
+        setIsHardError(!!result.error);
+        if (!result.error) {
+          setPendingAction(() => async () => {
+            await onRegenMana(actionType, amount, amountIsManna, true);
+            onClose();
+          });
+        }
+        return;
+      }
     }
 
     onClose();
@@ -105,6 +135,9 @@ function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onClose }) 
                 <option value="SPEND_PSZI">Spend Pszi</option>
                 <option value="SPEND_MANA">Spend Mana</option>
                 <option value="SKIP_TIME">Skip Time</option>
+                <option value="REGEN_MANA_VARAZS_KOR">Varázskör (1 pszi → 10 mp, 10 min)</option>
+                <option value="REGEN_MANA_KISZOPOLYOZAS">Kiszopolyozás (1 pszi → 5 mp, 2 seg)</option>
+                <option value="REGEN_MANA_KIVONAS">Kivonás (1 pszi → 3 mp, 2 félkör)</option>
               </select>
             </div>
 
@@ -118,6 +151,40 @@ function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onClose }) 
                   onChange={e => setAmount(Math.max(1, parseInt(e.target.value) || 1))}
                 />
               </div>
+            )}
+
+            {isRegenMana && (
+              <>
+                <div className="stat-row">
+                  <label>Enter amount as:</label>
+                  <label>
+                    <input
+                      type="radio"
+                      checked={!amountIsManna}
+                      onChange={() => setAmountIsManna(false)}
+                    /> Pszi
+                  </label>
+                  <label>
+                    <input
+                      type="radio"
+                      checked={amountIsManna}
+                      onChange={() => setAmountIsManna(true)}
+                    /> Manna
+                  </label>
+                </div>
+                <div className="stat-row">
+                  <label>{amountIsManna ? 'Manna target:' : 'Pszi to spend:'}</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={amount}
+                    onChange={e => setAmount(Math.max(1, parseInt(e.target.value) || 1))}
+                  />
+                </div>
+                <div className="stat-row">
+                  <span className="regen-preview">{getRegenPreview()}</span>
+                </div>
+              </>
             )}
 
             {actionType === 'SKIP_TIME' && (
@@ -143,25 +210,27 @@ function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onClose }) 
               </>
             )}
 
-            <div className="stat-row">
-              <label>Time:</label>
-              <input
-                type="number"
-                min="0"
-                value={timeAmount}
-                onChange={e => setTimeAmount(Math.max(0, parseFloat(e.target.value) || 0))}
-                style={{ width: '80px' }}
-              />
-              <select
-                value={timeMultiplier}
-                onChange={e => setTimeMultiplier(Number(e.target.value))}
-              >
-                {TIME_UNITS.map(u => (
-                  <option key={u.label} value={u.multiplier}>{u.label}</option>
-                ))}
-              </select>
-              <span className="time-segments-preview">= {getTimeSegments()} seg</span>
-            </div>
+            {!isRegenMana && (
+              <div className="stat-row">
+                <label>Time:</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={timeAmount}
+                  onChange={e => setTimeAmount(Math.max(0, parseFloat(e.target.value) || 0))}
+                  style={{ width: '80px' }}
+                />
+                <select
+                  value={timeMultiplier}
+                  onChange={e => setTimeMultiplier(Number(e.target.value))}
+                >
+                  {TIME_UNITS.map(u => (
+                    <option key={u.label} value={u.multiplier}>{u.label}</option>
+                  ))}
+                </select>
+                <span className="time-segments-preview">= {getTimeSegments()} seg</span>
+              </div>
+            )}
 
             {noTimeConfirm && (
               <p className="warning-text">No time specified. Proceed?</p>

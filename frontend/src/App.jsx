@@ -94,6 +94,25 @@ function App() {
     }
   };
 
+  const handleRegenMana = async (actionType, amount, amountIsManna, force) => {
+    try {
+      const response = await performActionApi(characterName, {
+        actionType,
+        amount,
+        amountIsManna,
+        forceAction: force,
+        currentState: state,
+      });
+      if (response.warning) {
+        return { warning: true, message: response.warningMessage };
+      }
+      setState(response.updatedState);
+      return { warning: false };
+    } catch (err) {
+      return { warning: true, message: 'Backend error: ' + err.message };
+    }
+  };
+
   const handleSkipTime = async (timeSegments, activityType, maxPainPointsAffected) => {
     try {
       const response = await performActionApi(characterName, {
@@ -254,6 +273,7 @@ function App() {
           onSpendPszi={handleSpendPszi}
           onSpendMana={handleSpendMana}
           onSkipTime={handleSkipTime}
+          onRegenMana={handleRegenMana}
           onClose={() => setShowActionDialog(false)}
         />
       )}
