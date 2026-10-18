@@ -15,6 +15,8 @@ public class ActionRequest {
     private boolean maxPainPointsAffected;
     /** If true, proceed even if magic exhaustion would go below 0 */
     private boolean forceAction;
+    /** For regen actions: if true, amount is the desired manna target; if false, amount is pszi to spend */
+    private boolean amountIsManna;
 
     /** The current game state before this action */
     private GameState currentState;
@@ -65,6 +67,14 @@ public class ActionRequest {
 
     public void setForceAction(boolean forceAction) {
         this.forceAction = forceAction;
+    }
+
+    public boolean isAmountIsManna() {
+        return amountIsManna;
+    }
+
+    public void setAmountIsManna(boolean amountIsManna) {
+        this.amountIsManna = amountIsManna;
     }
 
     public GameState getCurrentState() {

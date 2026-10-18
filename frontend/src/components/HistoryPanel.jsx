@@ -79,6 +79,9 @@ function formatActionType(type) {
     case 'SPEND_PSZI': return 'Spend Pszi';
     case 'SPEND_MANA': return 'Spend Mana';
     case 'SKIP_TIME': return 'Skip Time';
+    case 'REGEN_MANA_VARAZS_KOR': return 'Varázskör';
+    case 'REGEN_MANA_KISZOPOLYOZAS': return 'Kiszopolyozás';
+    case 'REGEN_MANA_KIVONAS': return 'Kivonás';
     default: return type;
   }
 }

@@ -122,6 +122,9 @@ public class CalculationService {
             case SPEND_PSZI -> handleSpendPszi(state, request);
             case SPEND_MANA -> handleSpendMana(state, request);
             case SKIP_TIME -> handleSkipTime(state, request);
+            case REGEN_MANA_VARAZS_KOR    -> handleRegenMana(state, request, 10, 600L);
+            case REGEN_MANA_KISZOPOLYOZAS -> handleRegenMana(state, request, 5, 2L);
+            case REGEN_MANA_KIVONAS       -> handleRegenMana(state, request, 3, 4L);
         };
 
         if (!response.isWarning()) {
@@ -232,6 +235,29 @@ public class CalculationService {
         state.setMagicExhaustionLimit(newExhaustion);
 
         state.setCurrentTimeSegments(state.getCurrentTimeSegments() + timeSegments);
+
+        return new ActionResponse(state);
+    }
+
+    private ActionResponse handleRegenMana(GameState state, ActionRequest request,
+                                            int mannaPerPszi, long flatTimeSegments) {
+        int psziCost = request.isAmountIsManna()
+                ? (int) Math.ceil((double) request.getAmount() / mannaPerPszi)
+                : request.getAmount();
+        int mannaGained = psziCost * mannaPerPszi;
+        double newExhaustion = state.getMagicExhaustionLimit() - psziCost;
+
+        if (newExhaustion < 0 && !request.isForceAction()) {
+            return new ActionResponse(state,
+                    "Magic exhaustion limit would go below 0 (to " +
+                            String.format("%.1f", newExhaustion) +
+                            "). Do you want to proceed?");
+        }
+
+        state.setCurrentPszi(Math.max(0, state.getCurrentPszi() - psziCost));
+        state.setCurrentManna(Math.min(state.getMaxManna(), state.getCurrentManna() + mannaGained));
+        state.setMagicExhaustionLimit(newExhaustion);
+        state.setCurrentTimeSegments(state.getCurrentTimeSegments() + flatTimeSegments);
 
         return new ActionResponse(state);
     }
