@@ -135,9 +135,13 @@ function ActionDialog({ state, onSpendPszi, onSpendMana, onSkipTime, onRegenMana
                 <option value="SPEND_PSZI">Spend Pszi</option>
                 <option value="SPEND_MANA">Spend Mana</option>
                 <option value="SKIP_TIME">Skip Time</option>
-                <option value="REGEN_MANA_VARAZS_KOR">Varázskör (1 pszi → 10 mp, 10 min)</option>
-                <option value="REGEN_MANA_KISZOPOLYOZAS">Kiszopolyozás (1 pszi → 5 mp, 2 seg)</option>
-                <option value="REGEN_MANA_KIVONAS">Kivonás (1 pszi → 3 mp, 2 félkör)</option>
+                {state.wielderType === 'MAGE' && (
+                  <>
+                    <option value="REGEN_MANA_VARAZS_KOR">Varázskör (1 pszi → 10 mp, 10 min)</option>
+                    <option value="REGEN_MANA_KISZOPOLYOZAS">Kiszopolyozás (1 pszi → 5 mp, 2 seg)</option>
+                    <option value="REGEN_MANA_KIVONAS">Kivonás (1 pszi → 3 mp, 2 félkör)</option>
+                  </>
+                )}
               </select>
             </div>
 
